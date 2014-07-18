@@ -20,6 +20,7 @@ function MainScene:ctor()
     --registerUpdate(self)
     local layer = MainLayer.new(self)
     layer:addTo(self)
+    self.layer = layer
 
     local uiLayer = MainUI.new(self)
     uiLayer:addTo(self)
