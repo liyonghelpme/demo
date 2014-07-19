@@ -8,7 +8,7 @@ end
 require "util"
 require("GameConfig")
 require("Event")
-
+require("app.BattleEx")
 local function main()
 	require("app.MyApp").new():run()
 end

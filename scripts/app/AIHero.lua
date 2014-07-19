@@ -1,5 +1,4 @@
-local function findTargetAndAttack(self)
-end
+
 
 local AIHero = class("AIHero", function() return display.newNode() end)
 function AIHero:ctor(s, col)
@@ -20,8 +19,8 @@ function AIHero:ctor(s, col)
     spc:addSpriteFramesWithFile("enemy_1/enemy_1.plist")
     CCArmatureDataManager:sharedArmatureDataManager():addArmatureFileInfo("enemy_1/enemy_1.json")
     self.changeDirNode = CCArmature:create("enemy_1")
-    self.changeDirNode:setScaleX(-0.5)
-    self.changeDirNode:setScaleY(0.5)
+    self.changeDirNode:setScaleX(-SOL_SCALE)
+    self.changeDirNode:setScaleY(SOL_SCALE)
     self.changeDirNode:anchor(0.5, 0):addTo(self)
 
     local aniData = self.changeDirNode:getAnimation()
@@ -34,8 +33,18 @@ function AIHero:ctor(s, col)
     self.target = nil
 
     registerUpdate(self)
-    self.attackProcess = coroutine.create(findTargetAndAttack)
+    --self.attackProcess = coroutine.create(findTargetAndAttack)
+    
+    
     self.ok = true
+
+    setAttackProcess(self)
+    addShadow(self)
+    addBlood(self)
+    --如果传入一个函数 则使用自己的函数替换默认的行为
+    makeHarmable(self)
+    makeAttackable(self)
+    makeDead(self)
 end
 
 function AIHero:onAniEvent(me, t, s)
@@ -59,6 +68,7 @@ end
 function AIHero:onAttackOver()
 	self.attackOver = true
 end
+
 
 
 return AIHero

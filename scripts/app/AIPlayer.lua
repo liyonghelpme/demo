@@ -7,7 +7,7 @@ local function putSoldier(self, allEnemy)
     while true do
         waitForTime(self, 1)
         if #allEnemy > 0 then
-        	--print("allEnemy")
+        	print("allEnemy", json.encode(allEnemy))
             --local rd = math.random(#allEnemy)
             local freePos = 1
             for i=1, 4, 1 do
@@ -34,7 +34,8 @@ local function putSoldier(self, allEnemy)
                 table.remove(allEnemy, rd)
 
                 local ai = AISoldier.new(self.scene, it, freePos)
-                addChild(self.scene.solLayer, ai.bg)
+                --addChild(self.scene.solLayer, ai.bg)
+                self.scene.solLayer:addChild(ai)
 
                 --[[
                 local pos = {
@@ -53,7 +54,8 @@ local function putSoldier(self, allEnemy)
 
 				}
 
-                setPos(ai.bg, pos[freePos])
+                --setPos(ai.bg, pos[freePos])
+                ai:setPosition(ccp(pos[freePos][1], pos[freePos][2]))
 
                 table.insert(self.scene.enemyTeam, ai)
 
@@ -76,8 +78,10 @@ local function think(self)
             lastId = lastId%#self.myTeam
 
             local findLive = false
-            local findSol 
-            for i=0, #self.scene.myTeam-1, 1 do
+            local findSol = nil
+            print("myTeam", #self.myTeam)
+
+            for i=0, #self.myTeam-1, 1 do
                 local nid = (lastId+i)%#self.myTeam+1
                 local sol = self.myTeam[nid]
                 if not sol.dead then
@@ -88,9 +92,14 @@ local function think(self)
                 end
             end
             
-            --print("findLive", findLive, findSol)
+            print("findLive", findLive, findSol)
             if findLive then
+                print("name", findSol.name)
+                --设置当前战斗对象
+                self.scene:setCurSol(findSol)
                 findSol:doAttack()
+            else
+                self.scene:setCurSol(nil)
             end
         end
         coroutine.yield()
@@ -113,10 +122,13 @@ function AIPlayer:ctor(s)
 end
 
 
+--判定当前自己是否可以响应操作
 function AIPlayer:receiveMsg(msg, arg)
 	if msg == "NEXT_ROUND" then
 		if self.scene.roundId % 2 == 1 then
 			self.myTurn = true
+        else
+            self.myTurn = false
 		end
 	end
 end

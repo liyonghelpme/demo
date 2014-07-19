@@ -77,6 +77,51 @@ function clearEvent(s)
     end
 end
 
+function waitForTime(self, t)
+    local passTime = 0
+    while passTime < t do
+        passTime = passTime+self.diff
+        coroutine.yield()
+    end
+end
+
+function adjustZord(obj)
+    local px, py = obj:getPosition()
+    obj:setZOrder(10000-py)
+end
+function Sign(v)
+    if v > 0 then
+        return 1
+    elseif v < 0 then
+        return -1
+    else
+        return 0
+    end
+end
+function pack(...)
+    return {...}
+end
+function getPos(o)
+    return pack(o:getPosition())
+end
+
+function removeSelf(obj)
+    obj:removeFromParent()
+end
+
+function callfunc(f, p)
+    local function cb()
+        f(p)
+    end
+    return CCCallFunc:create(cb)
+end
+
+function waitForMsg(obj, msg)
+    while not obj[msg] do
+        coroutine.yield()
+    end
+    obj[msg] = false
+end
 
 --[[
 function registerEnterOrExit(obj)

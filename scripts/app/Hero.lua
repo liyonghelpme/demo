@@ -1,7 +1,5 @@
 --英雄是不会移动的总是站在场景的中间
-local function findTargetAndAttack(self)
 
-end
 
 
 local Hero = class("Hero", function() return display.newNode() end)
@@ -10,6 +8,7 @@ function Hero:ctor(s)
 	self.name = math.random()
 	self.myTeam = self.scene.myTeam
 	self.enemy = self.scene.enemyTeam
+
 
 	local spc = CCSpriteFrameCache:sharedSpriteFrameCache()
 	spc:addSpriteFramesWithFile("userRole/userRole.plist")
@@ -23,6 +22,9 @@ function Hero:ctor(s)
 	self.changeDirNode:getAnimation():play("wait", -1, -1, 1)
 	self.changeDirNode:getAnimation():setSpeedScale(0.5)
 
+	--self.blood = display.newSprite("blood.png"):addTo(self):pos(0, 80):scale(0.5)
+
+
 	--可能存在bug 需要使用registerEnterOrExit 来替换
 	--setNodeEventEnabled  true listener
 	registerUpdate(self)
@@ -31,13 +33,21 @@ function Hero:ctor(s)
 	self.target = nil
 	self.canAttack = false
 	self.passTime = 0
-	self.health = 100
-	self.totalHealth = 100
+	self.health = 10000
+	self.totalHealth = 10000
 	self.dead = false
 	self.position = 0
-	self.attackProcess = coroutine.create(findTargetAndAttack)
+	--self.attackProcess = coroutine.create(findTargetAndAttack)
+	setAttackProcess(self)
+
 	self.ok = true
 
+	addBlood(self)
+	addShadow(self)
+
+	makeAttackable(self)
+	makeHarmable(self)
+	makeDead(self)
 end
 
 function Hero:update(diff)

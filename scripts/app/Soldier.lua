@@ -1,6 +1,5 @@
 --local 不会注册到全局名字空间 但是会注册到 本地的_Env 名字空间 
-local function justDoAttack(self)
-end
+
 
 
 local Soldier = class("Soldier", function() return display.newNode() end)
@@ -46,8 +45,15 @@ function Soldier:ctor(s, hid, col, pos)
 
     registerUpdate(self)
 
-    self.attackProcess = coroutine.create(justDoAttack)
     self.ok = true
+
+    setAttackProcess(self)
+    addBlood(self)
+	addShadow(self)
+
+	makeAttackable(self)
+	makeHarmable(self)
+	makeDead(self)
 end
 
 --也可以在触发战斗的时候需要等待上一个 progress结束才能进行下一个progress
