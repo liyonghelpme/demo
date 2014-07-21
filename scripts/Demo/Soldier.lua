@@ -323,22 +323,27 @@ Soldier = class()
 function Soldier:ctor(s, hid, col)
     self.scene = s
     self.kind = hid
-    self.color = col
+    self.color = 0
+
     self.name = math.random()
     self.health = 100
     self.dead = false
     self.attackRange = attackRange[self.kind] or 70
     self.attack = 5
 
+    --[[
     if self.color == 0 then
         self.myTeam = self.scene.myTeam
     else
         self.myTeam = self.scene.enemyTeam
     end
+    --]]
+    initSoldier(self)
 
     self.bg = CCNode:create()
-    self.blood = createSprite("blood.png")
-    setAnchor(setScale(setPos(addChild(self.bg, self.blood), {-40, 80}), 0.5), {0, 0.5})
+    
+    --self.blood = createSprite("blood.png")
+    --setAnchor(setScale(setPos(addChild(self.bg, self.blood), {-40, 80}), 0.5), {0, 0.5})
 
 
 
@@ -349,7 +354,7 @@ function Soldier:ctor(s, hid, col)
     CCArmatureDataManager:sharedArmatureDataManager():addArmatureFileInfo(st)
     self.changeDirNode = CCArmature:create("userDogface_"..hid.."_3")
     addChild(self.bg, self.changeDirNode)
-    setScale(self.changeDirNode, 0.5)
+    setScale(self.changeDirNode, SOL_SCALE)
     self.changeDirNode:getAnimation():setSpeedScale(0.5)
 
     local function moveEvent(me, t, s)
@@ -370,13 +375,20 @@ function Soldier:ctor(s, hid, col)
     registerEnterOrExit(self)
     
     --牧师治疗伙伴
+    --[[
     if self.kind == 4 then
         self.attackProcess = coroutine.create(findMoveCure)
     else
         self.attackProcess = coroutine.create(findMoveAttack)
     end
+    --]]
 
     self.ok = true
+
+    makeAttackable(self)
+    addShadow(self)
+    addBlood(self)
+    makeHarmable(self)
 end
 
 function Soldier:update(diff)
@@ -385,6 +397,7 @@ function Soldier:update(diff)
         local res, err = coroutine.resume(self.attackProcess, self) 
         if not res then
             print(err)
+            print(debug.traceback())
         end
         self.ok = res
     end
@@ -410,32 +423,7 @@ function Soldier:onAttackOver()
     end
 end
 
-function Soldier:updateBlood()
-    local rate = self.health/100
-    rate = math.min(math.max(rate, 0), 1)
-    self.blood:setTextureRect(CCRectMake(0, 0, 128*rate, 24))
-end
 
-function Soldier:doHarm(att)
-    local attack = att or 5
-
-    local lab = ui.newTTFLabel({text='-5', size=30, color={154, 12, 12}})
-    setPos(addChild(self.bg, lab), {0, 50})
-    lab:runAction(sequence({fadein(0.2), fadeout(0.2), callfunc(nil, removeSelf, lab)}))
-
-    self.health = self.health-attack
-    self:updateBlood()
-    
-
-    
-    --[[
-    if self.health <= 0 then
-        self.dead = true
-    end
-    --]]
-    
-    --Event:sendMsg("HERO_DAMAGE", self)
-end
 function Soldier:doCure()
     self.health = self.health+5
     self:updateBlood()

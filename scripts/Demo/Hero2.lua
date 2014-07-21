@@ -99,17 +99,9 @@ local function heroMove(self)
                 break
             else
                 runForWhile(self)
-                --[[
-                --做小移动
-                if self.scene.inTouch == true and self.color == 0 then
-                    if self.scene.touchPos[1] < vs.width/2 then
-                        doMove(self, -1)
-                    else
-                        doMove(self, 1)
-                    end
-                end
-                --]]
             end
+        else
+            runForWhile(self)
         end
         coroutine.yield()
     end
@@ -166,12 +158,8 @@ local function findTargetAndAttack(self)
     setZord(self)
     print("getZord hero", self.bg:getZOrder())
 
-    local enemy 
-    if self.color == 0 then
-        enemy = self.scene.enemyTeam
-    else
-        enemy = self.scene.myTeam
-    end
+    local enemy = self.enemy
+
     while true do
         --local finish = false
         if #enemy > 0 then

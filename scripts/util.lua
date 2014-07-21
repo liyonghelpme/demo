@@ -82,6 +82,7 @@ function registerUpdate(obj, interval)
         interval = 0
     end
     local function update(diff)
+        --print("update who", obj.name)
         obj:update(diff)
     end
     obj.updateFunc = CCDirector:sharedDirector():getScheduler():scheduleScriptFunc(update, interval, false)
