@@ -200,7 +200,7 @@ local function soldierMoveForWhile(self)
             break
         else
             --after move then adjust Y pos
-            local mv = self.diff*MOVE_SPEED*sign
+            local mv = self.diff*self.speed*sign
             self.moveX = mv
             setPos(self.bg, {myPos[1]+mv, myPos[2]})
             --print('start adjust')

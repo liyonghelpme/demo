@@ -4,48 +4,7 @@ local DIFY = 40
 local DIFX = 40
 local ATTACK_RANGE = 70
 
-local function adjustYPos(self)
-    --print("adjustYPos", self)
 
-    --x 方向最近的 Y 上太靠近的士兵 调整一下我方的 Y值
-    --固定值调整 +20
-    local minX = 9999
-    local minFriend
-    local minDy
-    local myPos = getPos(self.bg)
-
-    for k, v in ipairs(self.myTeam) do
-        if v ~= self then
-            local friPos = getPos(v.bg)
-            local dist = friPos[1]-myPos[1]
-            local dy = friPos[2]-myPos[2]
-            print("dist dy", self.name, dist, dy, self.dir)
-            --Y distance < 20
-            if math.abs(dy) < DIFY and dist * self.dir > 0 then
-                if math.abs(dist) < math.abs(minX) then
-                    minX = dist
-                    minDy = dy
-                    minFriend = v
-                end
-            end
-        end
-    end
-
-    if minFriend ~= nil then
-        setZord(self)
-        print("adjust Y pos")
-        local sign = getSign(-minDy) 
-        if sign == 0 then
-            sign = 1
-        end
-        local movey = sign*50*self.diff
-        setPos(self.bg, {myPos[1], myPos[2]+movey})
-        --距离太小则抵消掉移动X 方向
-        if math.abs(minX) < DIFX then
-            setPos(self.bg, {myPos[1]-self.moveX, myPos[2]+movey})
-        end
-    end
-end
 
 local function findEnemy(self, enemy)
     local dist = 99999
@@ -54,7 +13,7 @@ local function findEnemy(self, enemy)
     for k, v in ipairs(enemy) do
         local enePos = getPos(v.bg)
         local ed = math.abs(enePos[1]-myPos[1])
-        if ed < dist then
+        if not v.dead and ed < dist then
             dist = ed
             minEne = v
         end
@@ -64,47 +23,33 @@ local function findEnemy(self, enemy)
     self.target = minEne
 end
 
-local function moveToTarget(self)
-    self.changeDirNode:getAnimation():play("run", -1, -1, 1)
-    while true do
-        --print("start Move")
-        local myPos = getPos(self.bg)
-        local enePos = getPos(self.target.bg)
-        local dir = enePos[1]-myPos[1]
-        self.dir = getSign(dir)
 
-        local dist = math.abs(dir)
-        local sign = getSign(dir) 
-        if dist < ATTACK_RANGE then
-            break
-        else
-            --after move then adjust Y pos
-            local mv = self.diff*100*sign
-            self.moveX = mv
-            setPos(self.bg, {myPos[1]+mv, myPos[2]})
-            --print('start adjust')
-            --bug: lua
-            --当local 函数声明在 这个函数 之后的时候 无法调用 adjustPos 这个函数
-            adjustYPos(self)
-            --adjustXPos(self)
-        end
-        coroutine.yield()
-    end
-end
-
+--调整bg的scale 方向
 local function doMove(self, dir)
     local vs = getVS()
+    local frontX = vs.width
+    for k, v in ipairs(self.enemy) do
+        local p = getPos(v.bg)
+        if not v.dead and p[1] < frontX then
+            frontX = p[1]
+        end
+    end
+    frontX = frontX-40
 
     local myPos = getPos(self.bg)
-    local mv = dir*self.diff*MOVE_SPEED
+    local mv = dir*self.diff*self.speed
     if dir < 0 then
-        setScaleX(self.bg, -1)
-        if myPos[1] > 30 then
+        setScaleX(self.changeDirNode, -SOL_SCALE)
+        local rx = myPos[1]+mv
+        --不能越位
+        if myPos[1] > 30 and rx <= frontX then
             setPos(self.bg, {myPos[1]+mv, myPos[2]})
         end
     elseif dir > 0 then
-        setScaleX(self.bg, 1)
-        if myPos[1] < vs.width-30 then
+        setScaleX(self.changeDirNode, SOL_SCALE)
+
+        local rx = myPos[1]+mv
+        if myPos[1] < vs.width-30 and rx <= frontX then
             setPos(self.bg, {myPos[1]+mv, myPos[2]})
         end
     end
@@ -170,15 +115,7 @@ local function heroMove(self)
     end
 end
 
-local function setDir(self)
-    local myPos = getPos(self.bg)
-    local tarPos = getPos(self.target.bg)
-    if tarPos[1] > myPos[1] then
-        setScaleX(self.bg, 1)
-    else
-        setScaleX(self.bg, -1)
-    end
-end
+
 
 local function heroAttack(self)
     while true do
@@ -205,11 +142,11 @@ local function heroAttack(self)
             break
         end
             --self.changeDirNode:getAnimation():play("wait")
-        self.target:doHarm()
+        self.target:doHarm(self.attack)
         --当用户点击屏幕 则开始移动一下
         
         local minDist = math.abs(getPos(self.target.bg)[1]-getPos(self.bg)[1])
-        if minDist > self.attackRange then
+        if self.target.dead or minDist > self.attackRange then
             self.changeDirNode:getAnimation():play("wait", -1, -1, 1)
             break
         end
@@ -250,6 +187,8 @@ local function findTargetAndAttack(self)
                 --break
             end
             --]]
+        else 
+            heroMove(self)
         end
 
         coroutine.yield()
@@ -261,17 +200,19 @@ end
 Hero = class()
 --color 0 我方 1 敌方
 function Hero:ctor(s, col)
-    self.color = col
+    self.color = 0
+    self.kind = 0
     self.scene = s
-    self.attackRange = 70
 
-    self.name = math.random()
+    initSoldier(self)
 
-    if self.color == 0 then
-        self.myTeam = self.scene.myTeam
-    else
-        self.myTeam = self.scene.enemyTeam
-    end
+    --self.attackRange = 70
+
+    --self.name = math.random()
+
+    self.myTeam = self.scene.myTeam
+    self.enemy = self.scene.enemyTeam
+
 
     self.bg = CCNode:create()
 
@@ -281,15 +222,15 @@ function Hero:ctor(s, col)
         CCArmatureDataManager:sharedArmatureDataManager():addArmatureFileInfo("userRole/userRole.json")
 
         self.changeDirNode = CCArmature:create("userRole")
-        setScale(self.changeDirNode, 0.5)
+        setScale(self.changeDirNode, SOL_SCALE)
     else
         spc:addSpriteFramesWithFile("enemy_1/enemy_1.plist")
         CCArmatureDataManager:sharedArmatureDataManager():addArmatureFileInfo("enemy_1/enemy_1.json")
         self.changeDirNode = CCArmature:create("enemy_1")
-        setScaleY(self.changeDirNode, 0.5)
-        setScaleX(self.changeDirNode, -0.5)
+        setScaleY(self.changeDirNode, SOL_SCALE)
+        setScaleX(self.changeDirNode, -SOL_SCALE)
     end
-    setAnchor(addChild(self.bg, self.changeDirNode), {0.5, 0})
+    setAnchor(addChild(self.bg, self.changeDirNode), HERO_ANCHOR)
 
     local aniData = self.changeDirNode:getAnimation()
     print("aniData", aniData)
@@ -322,12 +263,16 @@ function Hero:ctor(s, col)
 
     --self.state =  ACTOR_STATE.WAIT
     self.passTime = 0
-    self.health = 100
-    self.totalHealth = 100
+
+    --self.health = 100
+    --self.totalHealth = 100
 
     self.attackProcess = coroutine.create(findTargetAndAttack)
     self.ok = true
 
+    addShadow(self)
+    addBlood(self)
+    makeHarmable(self)
 end
 
 function Hero:update(diff)
@@ -345,6 +290,7 @@ function Hero:onAttackOver()
     self.attackOver = true
 end
 
+--[[
 function Hero:doHarm()
     local lab = ui.newTTFLabel({text='5', size=30, color={154, 12, 12}})
     setPos(addChild(self.bg, lab), {0, 50})
@@ -354,6 +300,7 @@ function Hero:doHarm()
 
     Event:sendMsg("HERO_DAMAGE", self)
 end
+--]]
 
 function Hero:doCure()
     self.health = self.health+5

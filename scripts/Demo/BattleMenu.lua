@@ -35,7 +35,7 @@ end
 function BattleMenu:ctor(sc)
     self.scene = sc
 
-
+    
     local vs = getVS()
     
     self.bg = CCLayer:create()

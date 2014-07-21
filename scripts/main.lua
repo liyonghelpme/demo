@@ -8,13 +8,20 @@ end
 require "util"
 --require("GameConfig")
 require("Event")
+
+
 --require("app.BattleEx")
 local function main()
 	require("framework.init")
+	--require("ui")
+	
 	require("Global.INCLUDE")
 	print("before init ", class)
 	--require("app.MyApp").new():run()
 	require "Demo.BattleScene"
+	require("GameConfig")
+	require("Demo.BattleUtil")
+
 	CCFileUtils:sharedFileUtils():addSearchPath("res/")
 	
 	local director = CCDirector:sharedDirector()

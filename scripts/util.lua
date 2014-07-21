@@ -88,6 +88,7 @@ function registerUpdate(obj, interval)
 end
 function registerEnterOrExit(obj)
     local function onEnterOrExit(tag)
+        print("node event", tag)
         if tag == 'enter' then
             if obj.enterScene ~= nil then
                 obj:enterScene()
@@ -1898,5 +1899,13 @@ function getOrder(v)
         ord = ord+1
     end
     return ord
+end
+
+function createSequence(act)
+    local arr = CCArray:create()
+    for k, v in ipairs(act) do
+        arr:addObject(v)
+    end
+    return CCSequence:create(arr)
 end
 

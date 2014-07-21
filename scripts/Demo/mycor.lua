@@ -1,4 +1,4 @@
-MOVE_SPEED = 50
+--MOVE_SPEED = 50
 
 function waitForTime(self, t)
     local passTime = 0

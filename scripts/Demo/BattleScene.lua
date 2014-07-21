@@ -3,7 +3,7 @@ require "Demo.Hero2"
 require "Demo.mycor"
 require "Demo.EnemyHero"
 require "Demo.AIPlayer"
-
+require("Demo.MainUI")
 
 BattleScene = class()
 function BattleScene:ctor()
@@ -98,6 +98,7 @@ function BattleLayer:ctor()
     self.touchCount = 0
 
     --registerMultiTouch(self)
+    self.bg:setTouchPriority(256)
     registerTouch(self, 10)
     registerEnterOrExit(self)
     
@@ -107,6 +108,8 @@ function BattleLayer:ctor()
 
     --self.menu = BattleMenu.new(self)
     --addChild(self.bg, self.menu.bg)
+
+    self.menu = MainUI.new(self):addTo(self.bg)
 
 
     --self.touchValue = {count=0}
@@ -152,6 +155,13 @@ end
 
 
 function BattleLayer:update(diff)
+    --[[
+    local cap = self.bg:isTouchCaptureEnabled()
+    print("caputure touch", cap)
+    local box = self.bg:getCascadeBoundingBox()
+    print("cab", box.origin.x, box.origin.y, box.size.width, box.size.height)
+    --]]
+
     self.diff = diff
     local res, err = coroutine.resume(self.co, self)    
 

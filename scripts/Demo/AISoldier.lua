@@ -1,15 +1,17 @@
 
 local DIFY = 40
 local DIFX = 70
+--[[
 local attackRange = {
     [1]=50,
-    [9]=140,
+    [9]=240,
     [10]=50,
-    [11]=50,
+    [11]=200,
     [14]=140,
 
 
 }
+--]]
 
 local function adjustYPos(self)
     --print("adjustYPos", self)
@@ -80,15 +82,7 @@ local function adjustYPos(self)
     end
 end
 
-local function setDir(self)
-    local myPos = getPos(self.bg)
-    local tarPos = getPos(self.target.bg)
-    if tarPos[1] > myPos[1] then
-        setScaleX(self.bg, 1)
-    else
-        setScaleX(self.bg, -1)
-    end
-end
+
 
 local function soldierMoveForWhile(self)
     if self.oldTarget ~= self.target then
@@ -115,7 +109,7 @@ local function soldierMoveForWhile(self)
             break
         else
             --after move then adjust Y pos
-            local mv = self.diff*MOVE_SPEED*sign
+            local mv = self.diff*self.speed*sign
             self.moveX = mv
             setPos(self.bg, {myPos[1]+mv, myPos[2]})
             --print('start adjust')
@@ -226,7 +220,7 @@ local function moveToTarget(self)
             break
         else
             --after move then adjust Y pos
-            local mv = self.diff*MOVE_SPEED*sign
+            local mv = self.diff*self.speed*sign
             self.moveX = mv
             setPos(self.bg, {myPos[1]+mv, myPos[2]})
             --print('start adjust')
@@ -283,19 +277,25 @@ end
 AISoldier = class()
 function AISoldier:ctor(s, hid)
     self.scene = s
+    self.color = 1
     self.kind = hid
+    --[[
     self.name = math.random()
     self.health = 100
     self.attack = 5
-    self.attackRange = attackRange[self.kind] or 70
+    --]]
+    initSoldier(self)
+    --self.attackRange = EnemyAttackRange[self.kind]
+    --self.attack = EnemyAttack[self.kind]
+    
+    --self.attackRange = attackRange[self.kind] or 70
 
     self.enemy = self.scene.myTeam
     self.myTeam = self.scene.enemyTeam
 
     self.bg = CCNode:create()
 
-    self.blood = createSprite("blood.png")
-    setAnchor(setScale(setPos(addChild(self.bg, self.blood), {-40, 80}), 0.5), {0, 0.5})
+    
 
     local spc = CCSpriteFrameCache:sharedSpriteFrameCache()
     local st = string.format("enemy_%d/enemy_%d.plist", hid, hid)
@@ -305,10 +305,13 @@ function AISoldier:ctor(s, hid)
     CCArmatureDataManager:sharedArmatureDataManager():addArmatureFileInfo(st)
     self.changeDirNode = CCArmature:create("enemy_"..hid)
     addChild(self.bg, self.changeDirNode)
-    setScale(self.changeDirNode, 0.5)
+    setScaleX(self.changeDirNode, -SOL_SCALE)
+    setScaleY(self.changeDirNode, SOL_SCALE)
     self.changeDirNode:getAnimation():setSpeedScale(0.25)
-    setScaleX(self.bg, -1)
+    --setScaleX(self.bg, -1)
 
+    addBlood(self)
+    
     local function moveEvent(me, t, s)
         --print('moveevent', me, t, s)
         --0 start
@@ -328,7 +331,12 @@ function AISoldier:ctor(s, hid)
     
     self.ok = true
 
-    self.attackProcess = coroutine.create(findMoveAttack)
+    --self.attackProcess = coroutine.create(findMoveAttack)
+
+    makeAttackable(self)
+    addShadow(self)
+    addBlood(self)
+    makeHarmable(self)
 end
 
 function AISoldier:update(diff)
@@ -347,6 +355,7 @@ function AISoldier:onAttackOver()
 end
 
 
+--[[
 function AISoldier:doHarm(att)
     local attack = att or 5
 
@@ -361,11 +370,5 @@ function AISoldier:doHarm(att)
     self.blood:setTextureRect(CCRectMake(0, 0, 128*rate, 24))
 
     
-    --[[
-    if self.health <= 0 then
-        self.dead = true
-    end
-    --]]
-    
-    --Event:sendMsg("HERO_DAMAGE", self)
 end
+--]]

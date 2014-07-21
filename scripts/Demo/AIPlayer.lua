@@ -3,7 +3,9 @@ require "Demo.AISoldier"
 --检查冷却时间
 --随机抽取一个士兵放置出来
 local function think(self)
-    local allEnemy = {1, 9, 10, 11, 14, 15, 16}
+    --local allEnemy = {9, 10, 11, 14, 15, 16}
+    local allEnemy = {9, 11}
+
     local allItem = {}
     for k, v in ipairs(allEnemy) do
         local item = {curTime=0, totalTime=1}
@@ -17,7 +19,14 @@ local function think(self)
 
     while true do
         waitForTime(self, 1)
-        if #allEnemy > 0 then
+        local countLive = 0
+        for k, v in ipairs(self.scene.enemyTeam) do
+            if not v.dead then
+                countLive = countLive+1
+            end
+        end
+
+        if #allEnemy > 0 and countLive < 5 then
             --local rd = math.random(#allEnemy)
             local rd = 1
             local it = allEnemy[rd]
