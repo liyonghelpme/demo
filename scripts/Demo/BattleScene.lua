@@ -99,7 +99,8 @@ function BattleLayer:ctor()
 
     --registerMultiTouch(self)
     self.bg:setTouchPriority(256)
-    registerTouch(self, 10)
+    --registerTouch(self, 10)
+    registerMultiTouch(self)
     registerEnterOrExit(self)
     
     self.co = coroutine.create(battleProgress)
@@ -112,7 +113,7 @@ function BattleLayer:ctor()
     self.menu = MainUI.new(self):addTo(self.bg)
 
 
-    --self.touchValue = {count=0}
+    self.touchValue = {count=0}
 end
 
 function updateInfo(self)
@@ -121,19 +122,57 @@ function updateInfo(self)
         waitForTime(self, 1)
     end
 end
-
+--只考虑当前最小的touch对象的位置
 -- 参考miaomiao中的处理 standardTouchDelegate
 function BattleLayer:touchesBegan(touches)
     print("multitouch")
     self.inTouch = true
     local _, temp2 = convertMultiToArr(touches)
-    updateTouchTable(a, b)
+    updateTouchTable(self.touchValue, temp2)
+    local tv = self.touchValue[0]
+    if tv ~= nil then
+        self.touchPos = copyTable(tv) 
+    end
+
 end
+
 function BattleLayer:touchesMoved(touches)
+    local oldPos = copyTouchTable(self.touchValue)
+    local _, temp = convertMultiToArr(touches)
+    updateTouchTable(self.touchValue, temp)
+
+    local tv = self.touchValue[0]
+    if tv ~= nil then
+        self.touchPos = copyTable(tv)
+    end
+
 end
 
 function BattleLayer:touchesEnded(touches)
+    --self.inTouch = false
+    local _, temp = convertMultiToArr(touches)
+    clearTouchTable(self.touchValue, temp)  
+    if self.touchValue.count == 0 then
+        self.inTouch = false
+    end
+    local tv = self.touchValue[0]
+    if tv ~= nil then
+        self.touchPos = copyTable(tv)
+    end
 end
+
+function BattleLayer:touchesCanceled(touches)
+    local _, temp = convertMultiToArr(touches)
+    clearTouchTable(self.touchValue, temp)  
+    if self.touchValue.count == 0 then
+        self.inTouch = false
+    end
+    local tv = self.touchValue[0]
+    if tv ~= nil then
+        self.touchPos = copyTable(tv)
+    end
+end
+
 
 
 function BattleLayer:touchBegan(x, y)
