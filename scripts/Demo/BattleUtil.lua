@@ -23,7 +23,7 @@ end
 
 function initSoldier(self)
     self.attackRange = 70
-
+    
     self.attack = 20
     self.health = 100
     self.totalHealth = 100
@@ -39,6 +39,8 @@ function initSoldier(self)
 
         self.myTeam = self.scene.myTeam
         self.enemy = self.scene.enemyTeam
+
+        self.attackSpeed = MyAttackSpeed[self.kind]
     else
         self.speed = EnemyMoveSpeed[self.kind]
         self.attackRange = EnemyAttackRange[self.kind]
@@ -49,6 +51,8 @@ function initSoldier(self)
         
         self.myTeam = self.scene.enemyTeam
         self.enemy = self.scene.myTeam
+        
+        self.attackSpeed = EnemyAttackSpeed[self.kind]
     end
 end
 
@@ -188,6 +192,10 @@ local function tryToAttack(self)
 
             self.attackOver = false
             --print("attack again")
+            local oldScale = self.changeDirNode:getAnimation():getSpeedScale()
+
+            self.changeDirNode:getAnimation():setSpeedScale(self.attackSpeed)
+            
             self.changeDirNode:getAnimation():play("attack")
             while true do
                 if self.attackOver then
@@ -201,7 +209,8 @@ local function tryToAttack(self)
             --self.changeDirNode:getAnimation():play("wait")
             self.target:doHarm(self.attack)
             --当用户点击屏幕 则开始移动一下
-            
+            self.changeDirNode:getAnimation():setSpeedScale(oldScale)
+
             local minDist = math.abs(getPos(self.target.bg)[1]-getPos(self.bg)[1])
             if self.target.dead or minDist > self.attackRange then
                 self.changeDirNode:getAnimation():play("wait", -1, -1, 1)

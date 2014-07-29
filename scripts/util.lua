@@ -518,9 +518,10 @@ function convertMultiToArr(touches)
             y = v
         --x y id
         else 
-            lastPos[v] = {x, y, v}
+            local vc = tonumber(v)
+            lastPos[vc] = {x, y, vc}
             count = count+1
-            table.insert(ids, v)
+            table.insert(ids, vc)
         end
     end 
     --从0 开始排序touch id
@@ -1583,6 +1584,7 @@ function getScale(s)
     return s:getScale()
 end
 
+
 --只考虑 0 1 两个touchId
 function updateTouchTable(a, b)
     for k, v in pairs(b) do
@@ -1624,6 +1626,7 @@ function clearEvent(s)
         end
     end
 end
+
 
 function copyTable(b)
     local temp = {}
