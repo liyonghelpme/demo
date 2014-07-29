@@ -125,13 +125,17 @@ end
 --只考虑当前最小的touch对象的位置
 -- 参考miaomiao中的处理 standardTouchDelegate
 function BattleLayer:touchesBegan(touches)
-    print("multitouch")
+    print("multitouch", json.encode(touches))
     self.inTouch = true
     local _, temp2 = convertMultiToArr(touches)
+    print("touchValue", json.encode(temp2))
     updateTouchTable(self.touchValue, temp2)
+
     local tv = self.touchValue[0]
     if tv ~= nil then
         self.touchPos = copyTable(tv) 
+    else
+        self.inTouch = false
     end
 
 end
@@ -144,6 +148,8 @@ function BattleLayer:touchesMoved(touches)
     local tv = self.touchValue[0]
     if tv ~= nil then
         self.touchPos = copyTable(tv)
+    else
+        self.inTouch = false
     end
 
 end
@@ -155,9 +161,12 @@ function BattleLayer:touchesEnded(touches)
     if self.touchValue.count == 0 then
         self.inTouch = false
     end
+
     local tv = self.touchValue[0]
     if tv ~= nil then
         self.touchPos = copyTable(tv)
+    else
+        self.inTouch = false
     end
 end
 
@@ -170,6 +179,8 @@ function BattleLayer:touchesCanceled(touches)
     local tv = self.touchValue[0]
     if tv ~= nil then
         self.touchPos = copyTable(tv)
+    else
+        self.inTouch = false
     end
 end
 
